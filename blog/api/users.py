@@ -59,5 +59,15 @@ def create_user():
 
 
 @bp.route('/users/<int:id>', methods=['PUT'])
-def update_user():
-    pass
+def update_user(id):
+    user = User.query.get_or_404(id)
+    data = request.get_json() or {}
+    if 'username' in data and data['username'] != user.username and \
+            User.query.filter_by(username=data['username']).first():
+        return bad_request('Please use a different username.')
+    if 'email' in data and data['email'] != user.email and \
+            User.query.filter_by(email=data['email']).first():
+        return bad_request('Please use a different email address.')
+    user.from_dict(data, new_user=False)
+    db.session.commit()
+    return jsonify(user.to_dict())
