@@ -1,7 +1,8 @@
 from flask import jsonify, g
+
 from blog import db
 from blog.api import bp
-from blog.api.auth import basic_auth
+from blog.api.auth import basic_auth, token_auth
 
 
 @bp.route('/tokens', methods=['POST'])
@@ -12,5 +13,9 @@ def get_token():
     return jsonify({'token': token})
 
 
+@bp.route('/tokens', methods=['DELETE'])
+@token_auth.login_required
 def revoke_token():
-    pass
+    g.current_user.revoke_token()
+    db.session.commit()
+    return '', 204
